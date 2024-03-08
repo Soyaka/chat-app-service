@@ -9,11 +9,16 @@ func NewUser(id, name string) *User {
 		Rooms: make(map[string]*Room),
 	}
 }
-
 type User struct {
 	ID    uuid.UUID
 	Name  string
 	Rooms map[string]*Room
 }
-
-
+type RoomUser struct {
+	User *User
+	Room *Room
+}
+type MsgUser struct {
+	User *User
+	Msg  *Message
+}

@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"net/http"
+	"sockets/models"
+	"sync"
 
 	"github.com/gorilla/websocket"
 )
@@ -13,31 +15,66 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func main() {
-	http.HandleFunc("/ws", wsHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+type User *models.Agent
+type Server struct {
+	connectedUsers map[User]bool
 }
-func wsHandler(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	defer conn.Close()
 
+func NewServer() *Server {
+	return &Server{
+		connectedUsers: make(map[User]bool),
+	}
+}
+
+func (S *Server) handleWs(ws *websocket.Conn, wg *sync.WaitGroup) {
+	defer wg.Done()
+	fmt.Println("new connection from remote addr", ws.RemoteAddr())
+	S.ReadLoop(ws)
+	user := models.NewUser(ws)
+	S.connectedUsers[user] = true
+
+}
+
+func (s *Server) ReadLoop(ws *websocket.Conn) {
+	var msg models.Message
 	for {
-		messageType, message, err := conn.ReadMessage()
+		err := ws.ReadJSON(&msg)
 		if err != nil {
-			log.Println(err)
-			return
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("error", err)
+			continue
 		}
+		fmt.Println("message:", msg.Content, "from", ws.RemoteAddr())
+		msge := models.NewMessage("hello eve", msg.From, msg.To, "text")
+		ws.WriteJSON(msge)
+	}
+}
 
-		fmt.Println("Received message:", string(message))
-
-		err = conn.WriteMessage(messageType, message)
-		if err != nil {
-			log.Println(err)
-			return
+func Conversationer(users []User, to User, msg *models.Message) {
+	for _, user := range users {
+		if user == to {
+			err := user.ChatConn.WriteJSON(msg)
+			if err != nil {
+				fmt.Println("err sending msg ", err)
+			}
 		}
 	}
+}
+
+func main() {
+	var wg sync.WaitGroup
+	server := NewServer()
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		wg.Add(1)
+		go server.handleWs(conn, &wg)
+	})
+	http.ListenAndServe(":4444", nil)
+	wg.Wait()
 }

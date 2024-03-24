@@ -6,20 +6,20 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewRoom(id, name string, admin *User) *Room {
+func NewRoom(id, name string, admin *Agent) *Room {
 	return &Room{
 		ID:    uuid.New(),
 		Name:  name,
 		Admin: admin,
 		CreatedAt: time.Now(),
-		Users: make(map[string]*User),
+		Users: make([]*Agent, 2),
 	}
 }
 
 type Room struct {
 	ID        uuid.UUID
 	Name      string
-	Admin     *User
+	Admin     *Agent
 	CreatedAt time.Time
-	Users     map[string]*User
+	Users     []*Agent
 }

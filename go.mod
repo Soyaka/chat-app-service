@@ -1,4 +1,4 @@
-module sockets
+module main
 
 go 1.22.0
 

@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewMessage(content string, from *Agent, to *Agent, typee string) *Message {
+func NewMessage(content string, from, to string, typee string) *Message {
 	return &Message{
 		Id:        uuid.New(),
 		Content:   content,
@@ -18,10 +18,10 @@ func NewMessage(content string, from *Agent, to *Agent, typee string) *Message {
 }
 
 type Message struct {
-	Id        uuid.UUID
-	Content   string
-	From      *Agent
-	To        *Agent
-	Type      string
-	CreatedAt time.Time
+	Id        uuid.UUID `json:"id"`
+	Content   string    `json:"content"`
+	From      string     `json:"from"`
+	To        string     `json:"to"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"createdAt"`
 }

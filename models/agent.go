@@ -1,21 +1,34 @@
 package models
 
 import (
-	"time"
+	"errors"
 
 	"github.com/google/uuid"
-	"github.com/gorilla/websocket"
 )
 
-func NewUser(conn *websocket.Conn) *Agent {
-	return &Agent{
-		ID:       uuid.New(),
-		ChatConn: conn,
-	}
+type Agent struct {
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	Password string    `json:"-"`
 }
 
-type Agent struct {
-	ID       uuid.UUID
-	ChatConn *websocket.Conn
-	LastSeen time.Time
+func CreateUser(username, email, password string) (*Agent, error) {
+	if username == "" {
+		return nil, errors.New("username cannot be empty")
+	}
+	if email == "" {
+		return nil, errors.New("email cannot be empty")
+	}
+	if password == "" {
+		return nil, errors.New("password cannot be empty")
+	}
+
+	user := &Agent{
+		Username: username,
+		Email:    email,
+		Password: password,
+
+	}
+	return user, nil
 }

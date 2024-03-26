@@ -15,7 +15,7 @@ func UserCollection() *mongo.Collection {
 	return coll
 }
 
-func InsertUser(user *models.Agent) (*mongo.InsertOneResult, error) {
+func InsertUser(user *models.User) (*mongo.InsertOneResult, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	coll := UserCollection()
@@ -28,7 +28,7 @@ func InsertUser(user *models.Agent) (*mongo.InsertOneResult, error) {
 
 //TODO: add the cursor limit
 
-func GetUsers(filter bson.M) ([]*models.Agent, error) {
+func GetUsers(filter bson.M) ([]*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -38,9 +38,9 @@ func GetUsers(filter bson.M) ([]*models.Agent, error) {
 		return nil, err
 	}
 	defer cursor.Close(ctx)
-	var users []*models.Agent
+	var users []*models.User
 	for cursor.Next(ctx) {
-		var user *models.Agent
+		var user *models.User
 		if err := cursor.Decode(&user); err != nil {
 			return nil, err
 		}

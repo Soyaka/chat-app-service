@@ -1,7 +1,6 @@
 package websockets
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"main/models"
@@ -21,17 +20,15 @@ TODO: Add a channel for recieving errors that my acur
 
 func HandleConnections(ws *websocket.Conn, Server *models.Server, wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Println("new connection from remote addr", ws.RemoteAddr())
+	fmt.Println("New connection from remote addr", ws.RemoteAddr())
 	var user models.Agent
 	if err := ws.ReadJSON(&user); err != nil {
-		fmt.Println("error reading user:", err)
-		panic(err)
+		fmt.Println("Error reading user:", err)
+		return
 	}
-	Server.Mu.Lock()
-	Server.ConnectedUsers[user] = ws
-	Server.Mu.Unlock()
+	fmt.Println("User:", user.Email, user.Username)
+	Server.AddUser(user, ws)
 	go ReadLoop(ws, Server, user)
-
 }
 
 /*Loop over the connection and read the messages
@@ -45,21 +42,21 @@ TODO:Take the user base on the ID not email
 */
 
 func ReadLoop(ws *websocket.Conn, Server *models.Server, user models.Agent) {
+	defer Server.RemoveUser(user)
 	var msg models.Message
 	for {
-		err := ws.ReadJSON(&msg)
-		if err != nil {
+		if err := ws.ReadJSON(&msg); err != nil {
 			if err == io.EOF {
-				fmt.Println("connection closed", user)
-				break
+				fmt.Println("Connection closed for user:", user.Email)
+			} else {
+				fmt.Println("Error reading message:", err)
 			}
-			fmt.Println("error reading message", err)
-			panic(err)
+			break
 		}
-		fmt.Println("message:", msg.Content, "from", user)
+
 		msge := models.NewMessage(msg.Content, msg.From, msg.To, "text")
-		if err := Conversationer(Server, msg.To, msge); err != nil {
-			fmt.Println("error sending message to", msg.To, ":", err)
+		if err := Conversationer(Server, msg.From, msg.To, msge); err != nil {
+			fmt.Println("Error sending message to", msg.To, ":", err)
 		}
 	}
 }
@@ -75,25 +72,24 @@ TODO:Send message to sender and reciever
 
 */
 
-func Conversationer(Server *models.Server, to string, msg *models.Message) error {
+func Conversationer(Server *models.Server, from, to string, msg *models.Message) error {
 	Server.Mu.Lock()
 	defer Server.Mu.Unlock()
-	conn, ok := GetSlectedUser(Server.ConnectedUsers, to)
-	if !ok {
-		return errors.New("user not found")
-	}
-	err := conn.WriteJSON(msg)
-	if err != nil {
-		fmt.Println("error sending message to", to, ":", err)
+	if err := GetSelectedUsers(Server, msg); err != nil {
+		return err
 	}
 	return nil
 }
 
-func GetSlectedUser(ConnectedUsers map[models.Agent]*websocket.Conn, to string) (*websocket.Conn, bool) {
-	for user, conn := range ConnectedUsers {
-		if user.Email == to {
-			return conn, true
+func GetSelectedUsers(Server *models.Server, msg *models.Message) error {
+	for user, conn := range Server.ConnectedUsers {
+		if user.Email == msg.To || user.Email == msg.From {
+			if err := conn.WriteJSON(msg); err != nil {
+				fmt.Println("Error sending message to", user.Email, ":", err)
+				return err
+			}
+			fmt.Println("Sent to", user.Email)
 		}
 	}
-	return nil, false
+	return nil
 }

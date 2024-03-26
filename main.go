@@ -17,3 +17,16 @@ func main() {
 	http.ListenAndServe(":4444", nil)
 	wg.Wait()
 }
+
+
+
+
+/* TODO:
+#Fix the TODOS
+#Add Group Chat
+#Add Authentication
+#Add Encryption
+#Add database integration
+#Add redis
+#Add server handling in case a lot of users and in case of server crash or restart : add replicas
+*/

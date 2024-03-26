@@ -7,7 +7,7 @@ import (
 )
 
 type Agent struct {
-	ID       uuid.UUID `json:"id"`
+	ID       uuid.UUID `json:"-"`
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
 	Password string    `json:"-"`

@@ -25,14 +25,24 @@ func InsertGroup(group *models.Room) (*mongo.InsertOneResult, error) {
 	}
 	return res, nil
 }
-func GetGroup(id string) (*models.Room, error) {
+
+
+func GetGroups(filter bson.M) ([]*models.Room, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	coll := GroupCollection()
-	var group models.Room
-	err := coll.FindOne(ctx, bson.M{"id": id}).Decode(&group)
+	var group *models.Room
+	var groups []*models.Room
+	cursor, err := coll.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	return &group, nil
+	defer cursor.Close(ctx)
+	for cursor.Next(ctx) {
+		if err := cursor.Decode(&group); err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return groups, nil
 }

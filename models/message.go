@@ -17,6 +17,8 @@ func NewMessage(content string, from, to string, typee string) *Message {
 	}
 }
 
+
+
 type Message struct {
 	Id        uuid.UUID `json:"-" bson:"_id"`
 	Content   string    `json:"content" bson:"content"`

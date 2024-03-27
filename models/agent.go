@@ -1,8 +1,6 @@
 package models
 
 import (
-	"errors"
-
 	"github.com/google/uuid"
 )
 
@@ -11,4 +9,3 @@ type Agent struct {
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
 }
-

@@ -10,6 +10,7 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
+	
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
@@ -17,7 +18,8 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func WsHandler(w http.ResponseWriter, r *http.Request, S *models.Server, wg *sync.WaitGroup) {
+func WsMesgHandler(w http.ResponseWriter, r *http.Request, S *models.Server, wg *sync.WaitGroup) {
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -26,4 +28,29 @@ func WsHandler(w http.ResponseWriter, r *http.Request, S *models.Server, wg *syn
 	wg.Add(1)
 	go HandleConnections(conn, S, wg)
 
+}
+
+func WsContactHandler(w http.ResponseWriter, r *http.Request, S *models.Server) {
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	data := S.GetConnectedUsers()
+	nbRows := len(data)
+	contact := &ConectedUsers{
+		data:   data,
+		nbRows: nbRows,
+	}
+	if err = conn.WriteJSON(contact); err != nil {
+		fmt.Println("error in #wsHandlers:f:WsContactHandler")
+		panic(err)
+	}
+
+}
+
+type ConectedUsers struct {
+	data   []*models.Agent
+	nbRows int
 }

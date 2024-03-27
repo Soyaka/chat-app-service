@@ -7,11 +7,15 @@ import (
 	"sync"
 )
 
+
 func main() {
 	var wg sync.WaitGroup
 	server := models.CreateServer()
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		websockets.WsHandler(w, r, server, &wg)
+	http.HandleFunc("/wsMsg", func(w http.ResponseWriter, r *http.Request) {
+		websockets.WsMesgHandler(w, r, server, &wg)
+	})
+	http.HandleFunc("/wsContact", func(w http.ResponseWriter, r *http.Request) {
+		websockets.WsContactHandler(w, r, server)
 	})
 
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {

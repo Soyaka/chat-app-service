@@ -28,3 +28,11 @@ func (s *Server) RemoveUser(user *Agent) {
 	defer s.Mu.Unlock()
 	delete(s.ConnectedUsers, user)
 }
+
+func (S *Server) GetConnectedUsers() []*Agent {
+	var ListUsers []*Agent
+	for user := range S.ConnectedUsers {
+		ListUsers = append(ListUsers, user)
+	}
+	return ListUsers
+}

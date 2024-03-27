@@ -10,7 +10,7 @@ import (
 )
 
 var upgrader = websocket.Upgrader{
-	
+
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(r *http.Request) bool {
@@ -37,10 +37,10 @@ func WsContactHandler(w http.ResponseWriter, r *http.Request, S *models.Server) 
 		fmt.Println(err)
 		return
 	}
-	data := S.GetConnectedUsers()
-	nbRows := len(data)
+	contacts := S.GetConnectedUsers()
+	nbRows := len(contacts)
 	contact := &ConectedUsers{
-		data:   data,
+		data:   contacts,
 		nbRows: nbRows,
 	}
 	if err = conn.WriteJSON(contact); err != nil {

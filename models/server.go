@@ -15,7 +15,6 @@ func CreateServer() *Server {
 	return &Server{
 		ConnectedUsers: make(map[*Agent]*websocket.Conn),
 	}
-
 }
 
 func (s *Server) AddUser(user *Agent, conn *websocket.Conn) {

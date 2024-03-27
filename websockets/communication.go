@@ -21,7 +21,7 @@ TODO: Add a channel for recieving errors that my acur
 func HandleConnections(ws *websocket.Conn, Server *models.Server, wg *sync.WaitGroup) {
 	defer wg.Done()
 	fmt.Println("New connection from remote addr", ws.RemoteAddr())
-	var user models.Agent
+	var user *models.Agent
 	if err := ws.ReadJSON(&user); err != nil {
 		fmt.Println("Error reading user:", err)
 		return
@@ -41,7 +41,7 @@ TODO:Take the user base on the ID not email
 
 */
 
-func ReadLoop(ws *websocket.Conn, Server *models.Server, user models.Agent) {
+func ReadLoop(ws *websocket.Conn, Server *models.Server, user *models.Agent) {
 	defer Server.RemoveUser(user)
 	var msg models.Message
 	for {
@@ -84,12 +84,21 @@ func Conversationer(Server *models.Server, from, to string, msg *models.Message)
 func GetSelectedUsers(Server *models.Server, msg *models.Message) error {
 	for user, conn := range Server.ConnectedUsers {
 		if user.Email == msg.To || user.Email == msg.From {
-			if err := conn.WriteJSON(msg); err != nil {
-				fmt.Println("Error sending message to", user.Email, ":", err)
+			err := WriteMessage(conn, msg)
+			if err != nil {
 				return err
 			}
-			fmt.Println("Sent to", user.Email)
 		}
 	}
 	return nil
 }
+
+func WriteMessage(conn *websocket.Conn, msg *models.Message) error {
+	err := conn.WriteJSON(msg)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+/* #####WRITE UNIT TESTS####*/

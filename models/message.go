@@ -17,11 +17,13 @@ func NewMessage(content string, from, to string, typee string) *Message {
 	}
 }
 
+
+
 type Message struct {
-	Id        uuid.UUID `json:"-"`
-	Content   string    `json:"content"`
-	From      string    `json:"from"`
-	To        string    `json:"to"`
-	Type      string    `json:"-"`
-	CreatedAt time.Time `json:"-"`
+	Id        uuid.UUID `json:"-" bson:"_id"`
+	Content   string    `json:"content" bson:"content"`
+	From      string    `json:"from" bson:"from"`
+	To        string    `json:"to" bson:"to"`
+	Type      string    `json:"-" bson:"type"`
+	CreatedAt time.Time `json:"-" bson:"created_at"`
 }

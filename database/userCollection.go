@@ -48,3 +48,12 @@ func GetUsers(filter bson.M) ([]*models.User, error) {
 	}
 	return users, nil
 }
+
+func GetUser(filter bson.M) (*models.User, error) {
+	var users []*models.User
+	users, err := GetUsers(filter)
+	if err != nil {
+		return nil, err
+	}
+	return users[0], nil
+}

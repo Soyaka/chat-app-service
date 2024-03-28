@@ -1,12 +1,12 @@
 package main
 
 import (
+	"main/handlers"
 	"main/models"
 	"main/websockets"
 	"net/http"
 	"sync"
 )
-
 
 func main() {
 	var wg sync.WaitGroup
@@ -19,25 +19,25 @@ func main() {
 	})
 
 	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-			
+		handlers.Register(w, r)
 	})
 
 	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		
+		handlers.Login(w, r)
 	})
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/refreshToken", func(w http.ResponseWriter, r *http.Request) {
+		handlers.Refresh(w, r)
 
 	})
 
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+
 	})
-	
+
 	http.ListenAndServe(":4444", nil)
 	wg.Wait()
 }
-
 
 
 

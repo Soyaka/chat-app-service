@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	utils "main/Utils"
 	"main/database"
 	"main/models"
@@ -12,17 +13,13 @@ import (
 func Login(w http.ResponseWriter, r *http.Request) {
 	var user *models.User
 
-	err := r.ParseForm()
+	err := json.NewDecoder(r.Body).Decode(&user)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	user.Email = r.FormValue("email")
-	user.Password = r.FormValue("password")
-	if user.Email == "" || user.Password == "" {
-		http.Error(w, "All fields are required", http.StatusBadRequest)
-		return
-	}
+
 	IntendedUser, err := database.GetUser(bson.M{"email": user.Email})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

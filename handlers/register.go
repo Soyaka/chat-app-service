@@ -1,36 +1,34 @@
 package handlers
 
 import (
+	"encoding/json"
 	utils "main/Utils"
 	"main/database"
 	"main/models"
 	"net/http"
-	"time"
 )
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	var user *models.User
 
-	err := r.ParseForm()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	user.Email = r.FormValue("email")
-	user.Username = r.FormValue("username")
-	user.Password, err = utils.HashPassword(r.FormValue("password"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	user.CreatedAt = time.Now()
+	err := json.NewDecoder(r.Body).Decode(&user)
 
-	if user.Email == "" || user.Username == "" || user.Password == "" {
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	user.Password, err = utils.HashPassword(user.Password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if user.Email == "" || user.Password == "" || user.Username == "" {
 		http.Error(w, "All fields are required", http.StatusBadRequest)
 		return
 	}
 
 	result, err := database.InsertUser(user)
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -32,7 +32,7 @@ func main() {
 	})
 
 	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-
+		handlers.Logout(w, r)
 	})
 
 	http.ListenAndServe(":4444", nil)

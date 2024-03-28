@@ -26,7 +26,6 @@ func InsertGroup(group *models.Room) (*mongo.InsertOneResult, error) {
 	return res, nil
 }
 
-
 func GetGroups(filter bson.M) ([]*models.Room, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -45,4 +44,16 @@ func GetGroups(filter bson.M) ([]*models.Room, error) {
 		groups = append(groups, group)
 	}
 	return groups, nil
+}
+func GetGroup(id string) (*models.Room, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	coll := GroupCollection()
+	var group models.Room
+	err := coll.FindOne(ctx, bson.M{"id": id}).Decode(&group)
+	if err != nil {
+		return nil, err
+	}
+	return &group, nil
+
 }

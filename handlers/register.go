@@ -11,7 +11,7 @@ import (
 func Register(w http.ResponseWriter, r *http.Request) {
 	var user *models.User
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(user)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

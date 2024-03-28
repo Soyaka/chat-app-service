@@ -35,7 +35,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-	expirationTime := time.Now().Add(24 * 7 * time.Hour)
+	expirationTime := time.Now().Add(10* time.Minute)
 	claims := utils.UserClaims{
 		ID: IntendedUser.ID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -55,7 +55,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	}
-	
+
 	http.SetCookie(w, &cookie)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -6,7 +6,9 @@ import (
 	"main/database"
 	"main/models"
 	"net/http"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -19,6 +21,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	if user.Email == "" || user.Password == "" {
+		http.Error(w, "empty fields", http.StatusBadRequest)
+		return
+	}
 
 	IntendedUser, err := database.GetUser(bson.M{"email": user.Email})
 	if err != nil {
@@ -29,10 +35,29 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-
-	//TODO:Generate JWT Token
-
+	expirationTime := time.Now().Add(24 * 7 * time.Hour)
+	claims := utils.UserClaims{
+		ID: IntendedUser.ID.String(),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+		},
+	}
+	tokenString, err := utils.GenerateJWToken(claims)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cookie := http.Cookie{
+		Name:     "token",
+		Value:    tokenString,
+		Expires:  expirationTime,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	
+	http.SetCookie(w, &cookie)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
+	w.Write([]byte(tokenString))
 }

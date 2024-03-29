@@ -3,6 +3,7 @@ package main
 import (
 	"main/database"
 	"main/handlers"
+	"main/middleware"
 	"main/models"
 	"main/websockets"
 	"net/http"
@@ -14,28 +15,25 @@ func main() {
 	server := models.CreateServer()
 	client := database.Connect()
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/register", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		handlers.Register(w, r, client)
-	})
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	}))
+
+	http.HandleFunc("/login", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		handlers.Login(w, r, client)
-	})
-	http.HandleFunc("/refreshToken", func(w http.ResponseWriter, r *http.Request) {
-		handlers.RefreshToken(w, r)
-	})
-	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		handlers.Logout(w, r)
-	})
-	http.HandleFunc("/wsMsg", func(w http.ResponseWriter, r *http.Request) {
+	}))
+
+	http.HandleFunc("/refreshToken", middleware.AuthJWT(handlers.RefreshToken))
+	http.HandleFunc("/logout", middleware.AuthJWT(handlers.Logout))
+	http.HandleFunc("/wsMsg", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsMesgHandler(w, r, server, &wg)
-	})
-	http.HandleFunc("/wsContact", func(w http.ResponseWriter, r *http.Request) {
+	}))
+	http.HandleFunc("/wsContact", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsContactHandler(w, r, server)
-	})
+	}))
 
 	http.ListenAndServe(":4444", nil)
 	wg.Wait()
-
 }
 
 //FIXME: Add the error handling

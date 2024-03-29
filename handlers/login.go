@@ -10,9 +10,10 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Login(w http.ResponseWriter, r *http.Request) {
+func Login(w http.ResponseWriter, r *http.Request, client *mongo.Client ) {
 	var user *models.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -26,7 +27,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	IntendedUser, err := database.GetUser(bson.M{"email": user.Email})
+	IntendedUser, err := database.GetUser(bson.M{"email": user.Email}, client)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -35,7 +36,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-	expirationTime := time.Now().Add(10* time.Minute)
+	expirationTime := time.Now().Add(10 * time.Minute)
 	claims := utils.UserClaims{
 		ID: IntendedUser.ID.String(),
 		RegisteredClaims: jwt.RegisteredClaims{

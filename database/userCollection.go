@@ -10,17 +10,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func UserCollection() *mongo.Collection {
-	client := Connect()
+func UserCollection(client *mongo.Client) *mongo.Collection {
+
 	coll := client.Database("chat-app").Collection("users")
 	return coll
 }
 
-func InsertUser(user *models.User) (*mongo.InsertOneResult, error) {
+func InsertUser(user *models.User , client *mongo.Client) (*mongo.InsertOneResult, error) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	coll := UserCollection()
+	coll := UserCollection(client)
 	res, err := coll.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
@@ -30,11 +30,11 @@ func InsertUser(user *models.User) (*mongo.InsertOneResult, error) {
 
 //TODO: add the cursor limit
 
-func GetUsers(filter bson.M) ([]*models.User, error) {
+func GetUsers(filter bson.M, client *mongo.Client) ([]*models.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	coll := UserCollection()
+	coll := UserCollection(client)
 	cursor, err := coll.Find(ctx, filter)
 	if err != nil {
 		return nil, err
@@ -51,9 +51,9 @@ func GetUsers(filter bson.M) ([]*models.User, error) {
 	return users, nil
 }
 
-func GetUser(filter bson.M) (*models.User, error) {
+func GetUser(filter bson.M , Client *mongo.Client) (*models.User, error) {
 	var users []*models.User
-	users, err := GetUsers(filter)
+	users, err := GetUsers(filter , Client)
 	if err != nil {
 		return nil, err
 	}

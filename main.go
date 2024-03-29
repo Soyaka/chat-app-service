@@ -1,6 +1,7 @@
 package main
 
 import (
+	"main/database"
 	"main/handlers"
 	"main/models"
 	"main/websockets"
@@ -11,6 +12,20 @@ import (
 func main() {
 	var wg sync.WaitGroup
 	server := models.CreateServer()
+	client := database.Connect()
+
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		handlers.Register(w, r, client)
+	})
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		handlers.Login(w, r, client)
+	})
+	http.HandleFunc("/refreshToken", func(w http.ResponseWriter, r *http.Request) {
+		handlers.RefreshToken(w, r)
+	})
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		handlers.Logout(w, r)
+	})
 	http.HandleFunc("/wsMsg", func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsMesgHandler(w, r, server, &wg)
 	})
@@ -18,28 +33,13 @@ func main() {
 		websockets.WsContactHandler(w, r, server)
 	})
 
-	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
-		handlers.Register(w, r)
-	})
-
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
-		handlers.Login(w, r)
-	})
-
-	http.HandleFunc("/refreshToken", func(w http.ResponseWriter, r *http.Request) {
-		handlers.Refresh(w, r)
-
-	})
-
-	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
-		handlers.Logout(w, r)
-	})
-
 	http.ListenAndServe(":4444", nil)
 	wg.Wait()
+
 }
 
-
+//FIXME: Add the error handling
+//FIXME: handle db client distribution between handlers
 
 /* TODO:
 #Fix the TODOS

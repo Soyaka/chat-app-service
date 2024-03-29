@@ -15,20 +15,20 @@ func main() {
 	server := models.CreateServer()
 	client := database.Connect()
 
-	http.HandleFunc("/register", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/register",(func(w http.ResponseWriter, r *http.Request) {
 		handlers.Register(w, r, client)
 	}))
 
-	http.HandleFunc("/login", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/login", (func(w http.ResponseWriter, r *http.Request) {
 		handlers.Login(w, r, client)
 	}))
 
 	http.HandleFunc("/refreshToken", middleware.AuthJWT(handlers.RefreshToken))
 	http.HandleFunc("/logout", middleware.AuthJWT(handlers.Logout))
-	http.HandleFunc("/wsMsg", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/wsmsg", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsMesgHandler(w, r, server, &wg)
 	}))
-	http.HandleFunc("/wsContact", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/wscontact", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsContactHandler(w, r, server)
 	}))
 

@@ -22,7 +22,6 @@ func Connect() *mongo.Client {
 	}
 	fmt.Println("Connected to MongoDB")
 	return client
-
 }
 
 

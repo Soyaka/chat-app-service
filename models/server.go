@@ -29,9 +29,10 @@ func (s *Server) RemoveUser(user *Agent) {
 	delete(s.ConnectedUsers, user)
 }
 
-func (S *Server) GetConnectedUsers() []*Agent {
+func (s *Server) GetConnectedUsers() []*Agent {
+	s.Mu.Lock()
 	var ListUsers []*Agent
-	for user := range S.ConnectedUsers {
+	for user:= range s.ConnectedUsers {
 		ListUsers = append(ListUsers, user)
 	}
 	return ListUsers

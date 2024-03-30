@@ -41,7 +41,7 @@ func WsContactHandler(w http.ResponseWriter, r *http.Request, S *models.Server) 
 	nbRows := len(contacts)
 	contact := &ConectedUsers{
 		data:   contacts,
-		nbRows: nbRows,
+		nbRows: nbRows + 1,
 	}
 	if err = conn.WriteJSON(contact); err != nil {
 		fmt.Println("error in #wsHandlers:f:WsContactHandler")

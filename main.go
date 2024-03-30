@@ -8,31 +8,44 @@ import (
 	"main/websockets"
 	"net/http"
 	"sync"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func main() {
 	var wg sync.WaitGroup
 	server := models.CreateServer()
 	client := database.Connect()
+	r := mux.NewRouter()
 
-	http.HandleFunc("/register",(func(w http.ResponseWriter, r *http.Request) {
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowCredentials: true,
+	})
+
+	router := r.PathPrefix("/api").Subrouter()
+	router.Use(mux.CORSMethodMiddleware(r))
+
+	router.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Register(w, r, client)
-	}))
-
-	http.HandleFunc("/login", (func(w http.ResponseWriter, r *http.Request) {
+	}).Methods("POST")
+	router.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		handlers.Login(w, r, client)
-	}))
-
-	http.HandleFunc("/refreshToken", middleware.AuthJWT(handlers.RefreshToken))
-	http.HandleFunc("/logout", middleware.AuthJWT(handlers.Logout))
-	http.HandleFunc("/wsmsg", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	}).Methods("POST")
+	router.HandleFunc("/refreshToken", middleware.AuthJWT(handlers.RefreshToken)).Methods("POST")
+	router.HandleFunc("/logout", middleware.AuthJWT(handlers.Logout)).Methods("POST")
+	router.HandleFunc("/wsmsg", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsMesgHandler(w, r, server, &wg)
-	}))
-	http.HandleFunc("/wscontact", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
+	})).Methods("GET", "OPTIONS")
+	router.HandleFunc("/wscontact", middleware.AuthJWT(func(w http.ResponseWriter, r *http.Request) {
 		websockets.WsContactHandler(w, r, server)
-	}))
+	})).Methods("GET", "OPTIONS")
 
-	http.ListenAndServe(":4444", nil)
+	handler := c.Handler(r)
+	http.ListenAndServe(":4444", handler)
 	wg.Wait()
 }
 
